@@ -36,6 +36,7 @@ public class SMSService extends Service {
     BroadcastReceiver dlvRcv;
 
     String prodUrl = "http://srq-hermes.herokuapp.com/sms/minero";
+    String rewardUrl = "http://srq-hermes.herokuapp.com/api/rewardUrl";
     String devUrl = "http://192.168.0.104:3000/sms/minero/5c6ac5b06bce272a5c086f17";
     JSONObject cSMS;
 
@@ -139,12 +140,17 @@ public class SMSService extends Service {
                 smsIntent.setAction(SMS_ACTION);
                 smsIntent.putExtra("code",getResultCode());
                 smsIntent.putExtra("state",state);
+                smsIntent.putExtra("sms",cSMS.toString());
 
                 smsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sendBroadcast(smsIntent);
 
                 if (getResultCode()==Activity.RESULT_OK) {
-                    smsIntent.putExtra("sms",cSMS.toString());
+                    try {
+                        HttpRequest.get(rewardUrl+"/"+cSMS.getString("_id")).body();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                     (new Thread(new Runnable() {
                         @Override
                         public void run() {
