@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.srq.smstest.intents.MinerIntent;
+import com.srq.smstest.intents.SMSService;
 
 import org.json.JSONObject;
 
@@ -117,9 +118,10 @@ public class MainActivity extends AppCompatActivity {
         isRunning =true;
         sendBtn.setText("Detener");
 
-        miner = new Intent(MainActivity.this, MinerIntent.class);
-        miner.putExtra("delay",Long.parseLong(delaySec.getText().toString()));
+        miner = new Intent(MainActivity.this, SMSService.class);
+        miner.putExtra("delay",Integer.parseInt(delaySec.getText().toString()));
         startService(miner);
+
         wl.acquire();
         arrayList.add(0,"Minero inicia sesion");
         adaptador.notifyDataSetChanged();
@@ -148,10 +150,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            DateFormat fnow = new SimpleDateFormat("HH:mm:ss");
             if(intent.getAction().equals(MinerIntent.SMS_ACTION)) {
                 Integer acc =  intent.getIntExtra("code",-2);
                 String state = intent.getStringExtra("state");
-                DateFormat fnow = new SimpleDateFormat("HH:mm:ss");
                 if (acc==Activity.RESULT_OK) {
                     mSent = mSent+1;
                     smsSent.setText(String.format("Mensajes Enviados: %s",mSent.toString()));
@@ -161,6 +163,17 @@ public class MainActivity extends AppCompatActivity {
 
                 arrayList.add(0,String.format("%s: %s",fnow.format(new Date()),state));
                 adaptador.notifyDataSetChanged();
+            }
+            if(intent.getAction().equals(SMSService.SMS_LOG)) {
+                String state = intent.getStringExtra("texto");
+                arrayList.add(0,String.format("%s: %s",fnow.format(new Date()),state));
+                adaptador.notifyDataSetChanged();
+            }
+            if(intent.getAction().equals(SMSService.SMS_GENERIC_ERROR)) {
+                stopService(miner);
+                arrayList.add(0,String.format("%s: %s",fnow.format(new Date()),"Reiniciando servicio"));
+                adaptador.notifyDataSetChanged();
+                startService(miner);
             }
         }
     }
