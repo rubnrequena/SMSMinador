@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="number"
-                android:text="60" />
+                android:text="30" />
         </LinearLayout>
 
         <TextView
